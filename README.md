@@ -35,8 +35,15 @@ Service currently has 5 **grcp** endpoints defined:
  - GetAllDescendantProfiles
  
  **GetSeccompProfile** - Takes in Namespace, Application, Name, Version and Architecture as input. Returns Seccomp Profile if it is found in the database. Otherwise, provides a message of unsuccessful fetching.
+
+
  **DefineSeccompProfile**  Takes in Namespace, Application, Name, Version, Architecture and **Seccomp profile definition** as input. If the name of profile is unique, profile is created. Otherwise, client is notified of failed action.
+
+
  **ExtendSeccompProfile** Takes in name of **extending** and name of **defining** profile. May take an optional parameter in form of **syscalls** (additional system calls which defining profile should add onto its definition) If syscalls are provided as parameter, user may expect 2 scenarios:
+
 - Defining profile extends an extending profile and adds syscalls
 - Added syscalls are in conflict with existing syscalls from extending profile (eg. extending profile has **mkdir** as forbidden action while syscalls coming from the request define **mkdir** as allowed action.  In this case **priority is given to syscalls parameter**. User is notified that there was a conflict resulting in **successful profile creattion** but the defined profile **won't be added as a child in hierarchy to extending profile**
-- **GetAllDescendantProfiles** - Takes the same input as **GetSeccompProfile** but returns a list of all descendants in tree hierarchy of provided profile.
+
+
+**GetAllDescendantProfiles** - Takes the same input as **GetSeccompProfile** but returns a list of all descendants in tree hierarchy of provided profile.
