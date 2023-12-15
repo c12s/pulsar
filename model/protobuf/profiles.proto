@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+option go_package = "/";
+
+package helloworld;
+
+service SeccompService {
+
+  rpc DefineSeccompProfile (SeccompProfileDefinitionRequest) returns (BasicResponse) {}
+  rpc GetSeccompProfile(SeccompProfile) returns (GetSeccompProfileResponse) {}
+  rpc ExtendSeccompProfile(ExtendSeccompProfileRequest) returns (BasicResponse) {}
+  rpc GetAllDescendantProfiles(SeccompProfile) returns (GetAllDescendantProfilesResponse) {}
+  rpc GetSeccompProfileByPrefix(SeccompProfile) returns (GetAllDescendantProfilesResponse) {}
+}
+
+message SeccompProfile {
+
+    string namespace = 1;
+    string application = 2;
+    string name = 3;
+    string version = 4;
+    string architecture = 5;
+}
+
+message Syscalls {
+    repeated string names = 1;
+    string action = 2;
+}
+
+message SeccompProfileDefinition {
+    string defaultAction = 1;
+    repeated string architectures = 2;
+    repeated Syscalls syscalls = 3;
+}
+
+
+message SeccompProfileDefinitionRequest {
+
+    SeccompProfile profile = 1;
+    SeccompProfileDefinition definition = 2;
+}
+
+
+
+message ExtendSeccompProfileRequest {
+    
+    SeccompProfile extendProfile = 1;
+    SeccompProfile defineProfile = 2;
+    repeated Syscalls syscalls = 3;
+}
+
+message GetSeccompProfileResponse {
+    string message = 1;
+    string profile = 2;
+}
+
+message BasicResponse {
+    bool success = 1;
+    string message = 2;
+  }
+
+message GetAllDescendantProfilesResponse {
+    repeated SeccompProfileDefinitionRequest profiles = 1;
+}
