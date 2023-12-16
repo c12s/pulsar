@@ -53,8 +53,7 @@ message ExtendSeccompProfileRequest {
 }
 
 message GetSeccompProfileResponse {
-    string message = 1;
-    string profile = 2;
+    string profile = 1;
 }
 
 message BasicResponse {

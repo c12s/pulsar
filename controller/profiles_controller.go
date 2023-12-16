@@ -43,7 +43,7 @@ func (s *Server) GetSeccompProfile(ctx context.Context, in *pb.SeccompProfile) (
 	if e != nil {
 		return nil, e
 	}
-	return &pb.GetSeccompProfileResponse{Message: "Profile successfully retrieved", Profile: profile}, nil
+	return &pb.GetSeccompProfileResponse{Profile: profile}, nil
 }
 
 func (s *Server) ExtendSeccompProfile(ctx context.Context, in *pb.ExtendSeccompProfileRequest) (*pb.BasicResponse, error) {
