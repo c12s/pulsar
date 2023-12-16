@@ -56,21 +56,24 @@ func CreateSeccompProfile(profile *pb.SeccompProfileDefinitionRequest) error {
 	return nil
 }
 
-func GetSeccompProfile(profileRequest *pb.SeccompProfile) string {
+func GetSeccompProfile(profileRequest *pb.SeccompProfile) (string, error) {
 	response, err := client.Get(context.Background(), profileRequest.GetNamespace()+"-"+profileRequest.GetApplication()+"-"+profileRequest.GetName()+"-"+profileRequest.GetVersion()+"-"+profileRequest.GetArchitecture())
 	if err != nil {
 		fmt.Printf("Error fetching key-value pair: %v\n", err)
 	}
 	if len(response.Kvs) == 0 {
-		return "N/A"
+		return "N/A", fmt.Errorf("Profle not found")
 	}
-	return string(response.Kvs[0].Value)
+	profilejson := jsonmodel.SeccompProfileJson{}
+	jsonenc.Unmarshal([]byte(response.Kvs[0].Value), &profilejson)
+	definition, _ := jsonenc.Marshal(profilejson.Definition)
+	return string(definition), nil
 }
 
 func ExtendSeccompProfile(request *pb.ExtendSeccompProfileRequest) (bool, error) {
-	var extendingProfileString string = GetSeccompProfile(request.GetExtendProfile())
+	var extendingProfileString, _ = GetSeccompProfile(request.GetExtendProfile())
 	if extendingProfileString == "N/A" {
-		return false, nil
+		return false, fmt.Errorf("Extending profile not found")
 	}
 
 	extendingProfileJson := jsonmodel.SeccompProfileJson{}
@@ -115,7 +118,7 @@ func ExtendSeccompProfile(request *pb.ExtendSeccompProfileRequest) (bool, error)
 	}
 	saveProfile(request.GetDefineProfile().GetNamespace()+"-"+request.GetDefineProfile().GetApplication()+"-"+request.GetDefineProfile().GetName()+"-"+request.GetDefineProfile().GetVersion()+"-"+request.GetDefineProfile().GetArchitecture(), json)
 	saveProfile(request.GetExtendProfile().GetNamespace()+"-"+request.GetExtendProfile().GetApplication()+"-"+request.GetExtendProfile().GetName()+"-"+request.GetExtendProfile().GetVersion()+"-"+request.GetExtendProfile().GetArchitecture(), extendingProfileJson)
-	return true, nil
+	return redifined, nil
 }
 
 func GetAllDescendantProfiles(profile *pb.SeccompProfile) []json.SeccompProfileJson {

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	SeccompService_DefineSeccompProfile_FullMethodName      = "/helloworld.SeccompService/DefineSeccompProfile"
+	SeccompService_DefineSeccompProfileBatch_FullMethodName = "/helloworld.SeccompService/DefineSeccompProfileBatch"
 	SeccompService_GetSeccompProfile_FullMethodName         = "/helloworld.SeccompService/GetSeccompProfile"
 	SeccompService_ExtendSeccompProfile_FullMethodName      = "/helloworld.SeccompService/ExtendSeccompProfile"
 	SeccompService_GetAllDescendantProfiles_FullMethodName  = "/helloworld.SeccompService/GetAllDescendantProfiles"
@@ -31,6 +32,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SeccompServiceClient interface {
 	DefineSeccompProfile(ctx context.Context, in *SeccompProfileDefinitionRequest, opts ...grpc.CallOption) (*BasicResponse, error)
+	DefineSeccompProfileBatch(ctx context.Context, in *BatchSeccompProfileDefinitionRequest, opts ...grpc.CallOption) (*BasicResponse, error)
 	GetSeccompProfile(ctx context.Context, in *SeccompProfile, opts ...grpc.CallOption) (*GetSeccompProfileResponse, error)
 	ExtendSeccompProfile(ctx context.Context, in *ExtendSeccompProfileRequest, opts ...grpc.CallOption) (*BasicResponse, error)
 	GetAllDescendantProfiles(ctx context.Context, in *SeccompProfile, opts ...grpc.CallOption) (*GetAllDescendantProfilesResponse, error)
@@ -48,6 +50,15 @@ func NewSeccompServiceClient(cc grpc.ClientConnInterface) SeccompServiceClient {
 func (c *seccompServiceClient) DefineSeccompProfile(ctx context.Context, in *SeccompProfileDefinitionRequest, opts ...grpc.CallOption) (*BasicResponse, error) {
 	out := new(BasicResponse)
 	err := c.cc.Invoke(ctx, SeccompService_DefineSeccompProfile_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seccompServiceClient) DefineSeccompProfileBatch(ctx context.Context, in *BatchSeccompProfileDefinitionRequest, opts ...grpc.CallOption) (*BasicResponse, error) {
+	out := new(BasicResponse)
+	err := c.cc.Invoke(ctx, SeccompService_DefineSeccompProfileBatch_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +106,7 @@ func (c *seccompServiceClient) GetSeccompProfileByPrefix(ctx context.Context, in
 // for forward compatibility
 type SeccompServiceServer interface {
 	DefineSeccompProfile(context.Context, *SeccompProfileDefinitionRequest) (*BasicResponse, error)
+	DefineSeccompProfileBatch(context.Context, *BatchSeccompProfileDefinitionRequest) (*BasicResponse, error)
 	GetSeccompProfile(context.Context, *SeccompProfile) (*GetSeccompProfileResponse, error)
 	ExtendSeccompProfile(context.Context, *ExtendSeccompProfileRequest) (*BasicResponse, error)
 	GetAllDescendantProfiles(context.Context, *SeccompProfile) (*GetAllDescendantProfilesResponse, error)
@@ -108,6 +120,9 @@ type UnimplementedSeccompServiceServer struct {
 
 func (UnimplementedSeccompServiceServer) DefineSeccompProfile(context.Context, *SeccompProfileDefinitionRequest) (*BasicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DefineSeccompProfile not implemented")
+}
+func (UnimplementedSeccompServiceServer) DefineSeccompProfileBatch(context.Context, *BatchSeccompProfileDefinitionRequest) (*BasicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DefineSeccompProfileBatch not implemented")
 }
 func (UnimplementedSeccompServiceServer) GetSeccompProfile(context.Context, *SeccompProfile) (*GetSeccompProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSeccompProfile not implemented")
@@ -148,6 +163,24 @@ func _SeccompService_DefineSeccompProfile_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SeccompServiceServer).DefineSeccompProfile(ctx, req.(*SeccompProfileDefinitionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SeccompService_DefineSeccompProfileBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchSeccompProfileDefinitionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeccompServiceServer).DefineSeccompProfileBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SeccompService_DefineSeccompProfileBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeccompServiceServer).DefineSeccompProfileBatch(ctx, req.(*BatchSeccompProfileDefinitionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -234,6 +267,10 @@ var SeccompService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DefineSeccompProfile",
 			Handler:    _SeccompService_DefineSeccompProfile_Handler,
+		},
+		{
+			MethodName: "DefineSeccompProfileBatch",
+			Handler:    _SeccompService_DefineSeccompProfileBatch_Handler,
 		},
 		{
 			MethodName: "GetSeccompProfile",

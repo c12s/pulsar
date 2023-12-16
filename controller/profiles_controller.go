@@ -1,4 +1,3 @@
-// controller/profiles_controller.go
 package controller
 
 import (
@@ -16,39 +15,51 @@ type Server struct {
 func (s *Server) DefineSeccompProfile(ctx context.Context, in *pb.SeccompProfileDefinitionRequest) (*pb.BasicResponse, error) {
 	log.Printf("Received: %v", in.GetProfile().GetNamespace())
 	if err := util.ValidateDefineSeccompProfileRequest(in); err != nil {
-		return &pb.BasicResponse{Success: false, Message: err.Error()}, nil
+		return nil, err
 	}
 	repo.CreateSeccompProfile(in)
 	return &pb.BasicResponse{Success: true, Message: "Your profile has been successfully created"}, nil
 }
 
+func (s *Server) DefineSeccompProfileBatch(ctx context.Context, in *pb.BatchSeccompProfileDefinitionRequest) (*pb.BasicResponse, error) {
+	for _, profile := range in.Profiles {
+		if err := util.ValidateDefineSeccompProfileRequest(profile); err != nil {
+			return nil, err
+		}
+	}
+	for _, profile := range in.Profiles {
+		repo.CreateSeccompProfile(profile)
+	}
+	return &pb.BasicResponse{Message: "Batch completed. Profiles successfully created"}, nil
+
+}
+
 func (s *Server) GetSeccompProfile(ctx context.Context, in *pb.SeccompProfile) (*pb.GetSeccompProfileResponse, error) {
 	log.Printf("Requesting Seccomp Profile")
 	if err := util.ValidateGetSeccompProfileRequest(in); err != nil {
-		return &pb.GetSeccompProfileResponse{Message: err.Error()}, nil
+		return nil, err
 	}
-	profile := repo.GetSeccompProfile(in)
-	if profile == "N/A" {
-		return &pb.GetSeccompProfileResponse{Message: "Profile not found"}, nil
+	profile, e := repo.GetSeccompProfile(in)
+	if e != nil {
+		return nil, e
 	}
 	return &pb.GetSeccompProfileResponse{Message: "Profile successfully retrieved", Profile: profile}, nil
 }
 
 func (s *Server) ExtendSeccompProfile(ctx context.Context, in *pb.ExtendSeccompProfileRequest) (*pb.BasicResponse, error) {
 	if err := util.ValidateGetSeccompProfileRequest(in.GetDefineProfile()); err != nil {
-		return &pb.BasicResponse{Message: err.Error() + "(Defining Profile)"}, nil
+		return nil, err
 	}
 
 	if err := util.ValidateGetSeccompProfileRequest(in.GetExtendProfile()); err != nil {
-		return &pb.BasicResponse{Message: err.Error() + ("Extending Profile")}, nil
+		return nil, err
 	}
-	success, err := repo.ExtendSeccompProfile(in)
+	redifined, err := repo.ExtendSeccompProfile(in)
 	if err != nil {
-		return &pb.BasicResponse{Message: err.Error()}, nil
+		return nil, err
 	}
-
-	if !success {
-		return &pb.BasicResponse{Message: "Profile you're trying to extend does not exist"}, nil
+	if redifined {
+		return &pb.BasicResponse{Success: true, Message: "Your profile has been successfully created, but there was profile redifinion. Defining profile was not put into tree hierarchy"}, nil
 	}
 	return &pb.BasicResponse{Success: true, Message: "Your profile has been successfully created"}, nil
 }
