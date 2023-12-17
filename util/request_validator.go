@@ -46,8 +46,8 @@ func ValidateDefineSeccompProfileRequest(request *pb.SeccompProfileDefinitionReq
 		return fmt.Errorf("Seccomp profile definition is required is required!")
 	}
 
-	profile := repo.GetSeccompProfile(request.GetProfile())
-	if profile != "N/A" {
+	_, e := repo.GetSeccompProfile(request.GetProfile())
+	if e == nil {
 		return fmt.Errorf("This profile already exists")
 	}
 

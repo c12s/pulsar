@@ -1,0 +1,142 @@
+DefineSeccompProfile:
+
+{
+    "profile": {
+        "namespace" : "namespace",
+        "application" : "application",
+        "name" : "profileName",
+        "version" : "v1",
+        "architecture" : "x86"
+        },
+    "definition": {
+        "defaultAction" : "ALLOW",
+        "architectures" : ["x86"],
+        "syscalls" : [
+            {
+                "names" : ["DELETE", "MKDIR"],
+                "action" : "ALLOW"
+            }
+        ]
+    }
+}
+
+DefineSeccompProfileBatch:
+
+{
+    "profiles": [
+        {
+    "profile": {
+        "namespace" : "namespace",
+        "application" : "application",
+        "name" : "someName1",
+        "version" : "v1",
+        "architecture" : "x86"
+        },
+    "definition": {
+        "defaultAction" : "AA",
+        "architectures" : ["x86", "x99"],
+        "syscalls" : [
+            {
+                "names" : ["DELETE"],
+                "action" : "ALLOW"
+            }
+        ]
+    }
+},
+{
+    "profile": {
+        "namespace" : "namespace",
+        "application" : "application",
+        "name" : "someName2",
+        "version" : "v1",
+        "architecture" : "x86"
+        },
+    "definition": {
+        "defaultAction" : "AA",
+        "architectures" : ["x86", "x99"],
+        "syscalls" : [
+            {
+                "names" : ["DELETE"],
+                "action" : "ALLOW"
+            }
+        ]
+    }
+},
+{
+    "profile": {
+        "namespace" : "namespace",
+        "application" : "application",
+        "name" : "someName3",
+        "version" : "v1",
+        "architecture" : "x86"
+        },
+    "definition": {
+        "defaultAction" : "AA",
+        "architectures" : ["x86", "x99"],
+        "syscalls" : [
+            {
+                "names" : ["DELETE"],
+                "action" : "ALLOW"
+            }
+        ]
+    }
+}
+    ]
+}
+
+GetSeccompProfile:
+
+{
+    "namespace" : "namespace",
+    "application" : "application",
+    "name" : "profileName",
+    "version" : "v1",
+    "architecture" : "x86"
+}
+
+ExtendSeccompProfile: 
+
+{
+    // MAKE SURE EXTEND PROFILE EXIST IN ORDER TO SUCCESSFULLY COMPLETE THE TRANSACTION
+    "extendProfile": {
+        "namespace" : "someNameSpace",
+        "application" : "someApplication",
+        "name" : "someName",
+        "version" : "v1",
+        "architecture" : "x86"
+        },
+
+    "defineProfile": {
+        "namespace" : "someNamespace",
+        "application" : "someOTHERapp",
+        "name" : "profile",
+        "version" : "v1",
+        "architecture" : "x86"
+        },
+
+        // SYSCALLS FIELD IS OPTIONAL
+        "syscalls" : [
+            {
+                "names" : ["DELETE"],
+                "action" : "ALLOW"
+            }
+        ]
+
+    
+}
+
+GetAllDescendantProfiles:
+
+{
+    "namespace" : "namespace",
+    "application" : "application",
+    "name" : "profileName",
+    "version" : "v1",
+    "architecture" : "x86"
+}
+
+GetSeccompProfilesByPrefix:
+
+{
+    "namespace" : "namespace"
+}
