@@ -95,18 +95,22 @@ Service currently has 5 **grcp** endpoints defined:
 **Endpoint**: `GetSeccompProfile`
 
 **Request Body**:
-`{
+```
+{
     "namespace" : "namespace",
     "application" : "application",
     "name" : "profileName",
     "version" : "v1",
     "architecture" : "x86"
 }
-`
+```
 
 **Response**:
-`{"profile": "{\"defaultAction\":\"ALLOW\",\"architectures\":[\"x86\"],\"syscalls\":[{\"names\":[\"DELETE\",\"MKDIR\"],\"action\":\"ALLOW\"}]}"
-}`
+```
+{
+	"profile": "{\"defaultAction\":\"ALLOW\",\"architectures\":[\"x86\"],\"syscalls\":[{\"names\":[\"DELETE\",\"MKDIR\"],\"action\":\"ALLOW\"}]}"
+}
+```
 
 ### NOTE: '\\' character is added during protobuf serialization. In ETCD database, JSON is saved as is...
 
@@ -114,7 +118,7 @@ Service currently has 5 **grcp** endpoints defined:
 **Endpoint**: `DefineSeccompProfile`
 
 **Request Body**:
-`{
+```{
     "profile": {
         "namespace" : "namespace",
         "application" : "application",
@@ -133,7 +137,7 @@ Service currently has 5 **grcp** endpoints defined:
         ]
     }
 }
-`
+```
 
 **Response**:
 `{"success": true,
@@ -146,15 +150,16 @@ Service currently has 5 **grcp** endpoints defined:
 **Endpoint**: `ExtendSeccompProfile`
 
 **Request Body**:
-`
-	{"extendProfile": {
+```
+{
+	"extendProfile": {
         "namespace" : "someNameSpace",
         "application" : "someApplication",
         "name" : "someName",
         "version" : "v1",
         "architecture" : "x86"
         },
- "defineProfile": {
+	"defineProfile": {
         "namespace" : "someNamespace",
         "application" : "someOTHERapp",
         "name" : "profile",
@@ -167,7 +172,8 @@ Service currently has 5 **grcp** endpoints defined:
                 "action" : "ALLOW"
             }
         ]
- }`
+ }
+ ```
  
 **Response**:
 `{"success": true,
@@ -178,68 +184,69 @@ Service currently has 5 **grcp** endpoints defined:
 **Endpoint**: `DefineSeccompProfileBatch`
 
 **Request Body**:
-`
+```
+{
+	"profiles": [
 	{
-"profiles": [
+			"profile": {
+			"namespace" : "namespace",
+			"application" : "application",
+			"name" : "someName1",
+			"version" : "v1",
+			"architecture" : "x86"
+			},
+			"definition": {
+			"defaultAction" : "AA",
+			"architectures" : ["x86", "x99"],
+			"syscalls" : [
+				{
+					"names" : ["DELETE"],
+					"action" : "ALLOW"
+				}
+			]
+		}
+	},
 {
-"profile": {
-"namespace" : "namespaceoo",
-"application" : "application",
-"name" : "someName1",
-"version" : "v1",
-"architecture" : "x86"
-},
-"definition": {
-"defaultAction" : "AA",
-"architectures" : ["x86", "x99"],
-"syscalls" : [
+			"profile": {
+			"namespace" : "namespace",
+			"application" : "application",
+			"name" : "someName2",
+			"version" : "v1",
+			"architecture" : "x86"
+			},
+			"definition": {
+			"defaultAction" : "AA",
+			"architectures" : ["x86", "x99"],
+			"syscalls" : [
+				{
+					"names" : ["DELETE"],
+					"action" : "ALLOW"
+				}
+			]
+		}
+	},
 {
-"names" : ["DELETE"],
-"action" : "ALLOW"
-}
+		"profile": {
+		"namespace" : "namespace",
+		"application" : "application",
+		"name" : "someName1",
+		"version" : "v1",
+		"architecture" : "x86"
+		},
+		"definition": {
+		"defaultAction" : "AA",
+		"architectures" : ["x86", "x99"],
+		"syscalls" : [
+			{
+				"names" : ["DELETE"],
+				"action" : "ALLOW"
+			}
+		]
+	}
+	}
 ]
 }
-},
-{
-"profile": {
-"namespace" : "namespaceoo",
-"application" : "application",
-"name" : "someName2",
-"version" : "v1",
-"architecture" : "x86"
-},
-"definition": {
-"defaultAction" : "AA",
-"architectures" : ["x86", "x99"],
-"syscalls" : [
-{
-"names" : ["DELETE"],
-"action" : "ALLOW"
-}
-]
-}
-},
-{
-"profile": {
-"namespace" : "namespaceoo",
-"application" : "application",
-"name" : "someName3",
-"version" : "v1",
-"architecture" : "x86"
-},
-"definition": {
-"defaultAction" : "AA",
-"architectures" : ["x86", "x99"],
-"syscalls" : [
-{
-"names" : ["DELETE"],
-"action" : "ALLOW"
-}
-]
-}
-}
-]
-}`
+```
  
 **Response**:
 `{
@@ -252,43 +259,43 @@ Service currently has 5 **grcp** endpoints defined:
 **Endpoint**: `GetAllDescendantProfiles`
 
 **Request Body**:
-`{
+```
+{
     "namespace" : "namespace",
     "application" : "application",
     "name" : "profileName",
     "version" : "v1",
     "architecture" : "x86"
-}`
+}
+```
  
 **Response**:
-`{
+```
+{
 "profiles": [
 {
-"profile": {
-"namespace": "namespace",
-"application": "application",
-"name": "profileName",
-"version": "v1",
-"architecture": "x86"
-},
-"definition": {
-"architectures": [
-"x86"
-],
-"syscalls": [
-{
-"names": [
-"DELETE",
-"MKDIR"
-],
-"action": "ALLOW"
+	"profile": {
+		"namespace": "namespace",
+		"application": "application",
+		"name": "profileName",
+		"version": "v1",
+		"architecture": "x86"
+	},
+	"definition": {
+		"architectures": [
+		"x86"
+		],
+		"syscalls": [
+		{
+		"names": ["DELETE","MKDIR"],
+		"action": "ALLOW"
+		}],
+		"defaultAction": "ALLOW"
+			}
+		}
+	]
 }
-],
-"defaultAction": "ALLOW"
-}
-}
-]
-}`
+```
 
 ### Get Seccomp Profiles by Prefix Search
 
@@ -300,34 +307,33 @@ Service currently has 5 **grcp** endpoints defined:
 }`
 
 **Response**
-`{
-"profiles": [
+```
 {
-"profile": {
-"namespace": "namespace",
-"application": "application",
-"name": "profileName",
-"version": "v1",
-"architecture": "x86"
-},
-"definition": {
-"architectures": [
-"x86"
-],
-"syscalls": [
-{
-"names": [
-"DELETE",
-"MKDIR"
-],
-"action": "ALLOW"
+	"profiles": [
+	{
+		"profile": {
+		"namespace": "namespace",
+		"application": "application",
+		"name": "profileName",
+		"version": "v1",
+		"architecture": "x86"
+	},
+	"definition": {
+		"architectures": [
+		"x86"
+		],
+		"syscalls": [
+		{
+			"names": ["DELETE","MKDIR"],
+			"action": "ALLOW"
+		}
+		],
+		"defaultAction": "ALLOW"
+		}
+	}
+	]
 }
-],
-"defaultAction": "ALLOW"
-}
-}
-]
-}`
+```
 
 ### Note: The Request Body can be the same as in GetSeccompProfile. Profiles names are saved in database in next format:
 
