@@ -4,7 +4,7 @@ import (
 	"context"
 	jsonenc "encoding/json"
 	"fmt"
-	"pulsar/model/json"
+	"os"
 	jsonmodel "pulsar/model/json"
 	pb "pulsar/model/protobuf"
 	"strings"
@@ -19,7 +19,7 @@ var client *cli.Client
 func init() {
 	var err error
 	client, err = cli.New(cli.Config{
-		Endpoints:   []string{"localhost:2379"},
+		Endpoints:   []string{os.Getenv("ETCD_ADDRESS")},
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
@@ -56,28 +56,25 @@ func CreateSeccompProfile(profile *pb.SeccompProfileDefinitionRequest) error {
 	return nil
 }
 
-func GetSeccompProfile(profileRequest *pb.SeccompProfile) (string, error) {
-	response, err := client.Get(context.Background(), profileRequest.GetNamespace()+"-"+profileRequest.GetApplication()+"-"+profileRequest.GetName()+"-"+profileRequest.GetVersion()+"-"+profileRequest.GetArchitecture())
+func GetSeccompProfile(profileRequest *pb.SeccompProfile) (*jsonmodel.SeccompProfileJson, error) {
+	key := profileRequest.GetNamespace() + "-" + profileRequest.GetApplication() + "-" + profileRequest.GetName() + "-" + profileRequest.GetVersion() + "-" + profileRequest.GetArchitecture()
+	response, err := client.Get(context.Background(), key)
 	if err != nil {
 		fmt.Printf("Error fetching key-value pair: %v\n", err)
 	}
 	if len(response.Kvs) == 0 {
-		return "N/A", fmt.Errorf("Profle not found")
+		return nil, fmt.Errorf("profle not found")
 	}
 	profilejson := jsonmodel.SeccompProfileJson{}
 	jsonenc.Unmarshal([]byte(response.Kvs[0].Value), &profilejson)
-	definition, _ := jsonenc.Marshal(profilejson.Definition)
-	return string(definition), nil
+	return &profilejson, nil
 }
 
 func ExtendSeccompProfile(request *pb.ExtendSeccompProfileRequest) (bool, error) {
-	var extendingProfileString, _ = GetSeccompProfile(request.GetExtendProfile())
-	if extendingProfileString == "N/A" {
-		return false, fmt.Errorf("Extending profile not found")
+	var extendingProfileJson, _ = GetSeccompProfile(request.GetExtendProfile())
+	if extendingProfileJson == nil {
+		return false, fmt.Errorf("extending profile not found")
 	}
-
-	extendingProfileJson := jsonmodel.SeccompProfileJson{}
-	jsonenc.Unmarshal([]byte(extendingProfileString), &extendingProfileJson)
 
 	json := jsonmodel.SeccompProfileJson{}
 	json.Definition = extendingProfileJson.Definition
@@ -117,19 +114,20 @@ func ExtendSeccompProfile(request *pb.ExtendSeccompProfileRequest) (bool, error)
 		extendingProfileJson.Children = append(extendingProfileJson.Children, request.DefineProfile.GetNamespace()+"-"+request.DefineProfile.GetApplication()+"-"+request.DefineProfile.GetName()+"-"+request.DefineProfile.GetVersion()+"-"+request.DefineProfile.GetArchitecture())
 	}
 	saveProfile(request.GetDefineProfile().GetNamespace()+"-"+request.GetDefineProfile().GetApplication()+"-"+request.GetDefineProfile().GetName()+"-"+request.GetDefineProfile().GetVersion()+"-"+request.GetDefineProfile().GetArchitecture(), json)
-	saveProfile(request.GetExtendProfile().GetNamespace()+"-"+request.GetExtendProfile().GetApplication()+"-"+request.GetExtendProfile().GetName()+"-"+request.GetExtendProfile().GetVersion()+"-"+request.GetExtendProfile().GetArchitecture(), extendingProfileJson)
+	// todo: deep copy
+	// saveProfile(request.GetExtendProfile().GetNamespace()+"-"+request.GetExtendProfile().GetApplication()+"-"+request.GetExtendProfile().GetName()+"-"+request.GetExtendProfile().GetVersion()+"-"+request.GetExtendProfile().GetArchitecture(), *extendingProfileJson)
 	return redifined, nil
 }
 
-func GetAllDescendantProfiles(profile *pb.SeccompProfile) []json.SeccompProfileJson {
+func GetAllDescendantProfiles(profile *pb.SeccompProfile) []jsonmodel.SeccompProfileJson {
 
-	var desendants []json.SeccompProfileJson = make([]json.SeccompProfileJson, 0)
+	var desendants []jsonmodel.SeccompProfileJson = make([]jsonmodel.SeccompProfileJson, 0)
 	getAllDescendantsRecursive(profile.GetNamespace()+"-"+profile.GetApplication()+"-"+profile.GetName()+"-"+profile.GetVersion()+"-"+profile.GetArchitecture(), &desendants)
 	return desendants
 }
 
-func GetSeccompProfileByPrefix(profile *pb.SeccompProfile) []json.SeccompProfileJson {
-	var retVal []json.SeccompProfileJson = make([]json.SeccompProfileJson, 0)
+func GetSeccompProfileByPrefix(profile *pb.SeccompProfile) []jsonmodel.SeccompProfileJson {
+	var retVal []jsonmodel.SeccompProfileJson = make([]jsonmodel.SeccompProfileJson, 0)
 	var key string = ""
 	if profile.GetNamespace() != "" {
 		key += profile.GetNamespace() + "-"
@@ -148,7 +146,7 @@ func GetSeccompProfileByPrefix(profile *pb.SeccompProfile) []json.SeccompProfile
 	}
 	profiles, _ := client.Get(context.Background(), key, cli.WithPrefix())
 	for _, item := range profiles.Kvs {
-		seccompProfileJson := json.SeccompProfileJson{}
+		seccompProfileJson := jsonmodel.SeccompProfileJson{}
 		var splitKey []string = strings.Split(string(item.Key), "-")
 		seccompProfileJson.Profile.Namespace = splitKey[0]
 		seccompProfileJson.Profile.Application = splitKey[1]
@@ -161,10 +159,10 @@ func GetSeccompProfileByPrefix(profile *pb.SeccompProfile) []json.SeccompProfile
 	}
 	return retVal
 }
-func getAllDescendantsRecursive(key string, desendants *[]json.SeccompProfileJson) {
+func getAllDescendantsRecursive(key string, desendants *[]jsonmodel.SeccompProfileJson) {
 	response, _ := client.Get(context.Background(), key)
 	var splitKey []string = strings.Split(key, "-")
-	profile := json.SeccompProfileJson{Profile: json.Profile{Namespace: splitKey[0],
+	profile := jsonmodel.SeccompProfileJson{Profile: jsonmodel.Profile{Namespace: splitKey[0],
 		Application:  splitKey[1],
 		Name:         splitKey[2],
 		Version:      splitKey[3],
@@ -193,9 +191,9 @@ func union(slice1, slice2 []string) []string {
 	return append(slice1, result...)
 }
 
-func saveProfile(name string, profile json.SeccompProfileJson) (bool, error) {
+func saveProfile(name string, profile jsonmodel.SeccompProfileJson) (bool, error) {
 	jsonBytes, e := jsonenc.Marshal(struct {
-		json.SeccompProfileJson
+		jsonmodel.SeccompProfileJson
 		Profile interface{} `json:"profile,omitempty"`
 	}{
 		SeccompProfileJson: profile,

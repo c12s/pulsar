@@ -53,7 +53,8 @@ message ExtendSeccompProfileRequest {
 }
 
 message GetSeccompProfileResponse {
-    string profile = 1;
+    SeccompProfile profile = 1;
+    SeccompProfileDefinition definition = 2;
 }
 
 message BasicResponse {
