@@ -39,11 +39,27 @@ func (s *Server) GetSeccompProfile(ctx context.Context, in *pb.SeccompProfile) (
 	if err := util.ValidateGetSeccompProfileRequest(in); err != nil {
 		return nil, err
 	}
-	profile, e := repo.GetSeccompProfile(in)
+	jsonProfile, e := repo.GetSeccompProfile(in)
 	if e != nil {
 		return nil, e
 	}
-	return &pb.GetSeccompProfileResponse{Profile: profile}, nil
+	syscalls := make([]*pb.Syscalls, 0)
+	for _, syscall := range jsonProfile.Definition.Syscalls {
+		syscalls = append(syscalls, &pb.Syscalls{Names: syscall.Names, Action: syscall.Action})
+	}
+	return &pb.GetSeccompProfileResponse{
+		Profile: &pb.SeccompProfile{
+			Namespace:    jsonProfile.Profile.Namespace,
+			Application:  jsonProfile.Profile.Application,
+			Name:         jsonProfile.Profile.Name,
+			Version:      jsonProfile.Profile.Version,
+			Architecture: jsonProfile.Profile.Architecture,
+		},
+		Definition: &pb.SeccompProfileDefinition{
+			DefaultAction: jsonProfile.Definition.DefaultAction,
+			Architectures: jsonProfile.Definition.Architectures,
+			Syscalls:      syscalls,
+		}}, nil
 }
 
 func (s *Server) ExtendSeccompProfile(ctx context.Context, in *pb.ExtendSeccompProfileRequest) (*pb.BasicResponse, error) {

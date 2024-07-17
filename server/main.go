@@ -3,9 +3,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"google.golang.org/grpc"
 
@@ -13,13 +13,9 @@ import (
 	pb "pulsar/model/protobuf"
 )
 
-var (
-	port = flag.Int("port", 50051, "The server port")
-)
-
 func main() {
 	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", os.Getenv("LISTEN_ADDRESS"))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
