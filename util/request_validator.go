@@ -4,6 +4,7 @@ import (
 	"fmt"
 	pb "pulsar/model/protobuf"
 	repo "pulsar/repository"
+	"strings"
 )
 
 func ValidateGetSeccompProfileRequest(request *pb.SeccompProfile) error {
@@ -76,4 +77,9 @@ func ValidateGetSeccompProfileByPrefixRequest(request *pb.SeccompProfile) error 
 	}
 
 	return nil
+}
+
+// ns name is in format: org/name
+func GetOrgIdFromNamespace(namespace string) string {
+	return strings.Split(namespace, "/")[0]
 }

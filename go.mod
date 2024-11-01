@@ -3,6 +3,7 @@ module pulsar
 go 1.20
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	go.etcd.io/etcd/client/v3 v3.5.9
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
